@@ -1,0 +1,40 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+package-lock.json
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Directory for uploaded files
+uploads/*
+!uploads/.gitkeep
+
+# Coverage directory
+coverage
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
