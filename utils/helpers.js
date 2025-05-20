@@ -1,6 +1,7 @@
 /**
  * Helper utility functions for the API
  */
+const { DEFAULT_PROFILE_FILENAME, DEFAULT_PRODUCT_FILENAME } = require('./constants');
 
 // Format price to 2 decimal places
 exports.formatPrice = (price) => {
@@ -49,4 +50,36 @@ exports.getPaginationInfo = (total, page, limit) => {
     hasNextPage: currentPage < totalPages,
     hasPrevPage: currentPage > 1
   };
+};
+
+// Get the full URL for a profile image
+exports.getImageUrl = (req, imageName) => {
+  if (!imageName || imageName === 'null' || imageName === 'undefined') {
+    // Return default image if no image name provided
+    return `${req.protocol}://${req.get('host')}/uploads/${DEFAULT_PROFILE_FILENAME}`;
+  }
+  
+  // Check if it's already a full URL
+  if (imageName.startsWith('http://') || imageName.startsWith('https://')) {
+    return imageName;
+  }
+  
+  // Return constructed URL to the image
+  return `${req.protocol}://${req.get('host')}/uploads/${imageName}`;
+};
+
+// Get product image URL
+exports.getProductImageUrl = (req, imageName) => {
+  if (!imageName || imageName === 'null' || imageName === 'undefined') {
+    // Return default product image if no image name provided
+    return `${req.protocol}://${req.get('host')}/uploads/${DEFAULT_PRODUCT_FILENAME}`;
+  }
+  
+  // Check if it's already a full URL
+  if (imageName.startsWith('http://') || imageName.startsWith('https://')) {
+    return imageName;
+  }
+  
+  // Return constructed URL to the image
+  return `${req.protocol}://${req.get('host')}/uploads/${imageName}`;
 };

@@ -1,5 +1,6 @@
 const { pool } = require('../config/db');
 const bcrypt = require('bcryptjs');
+const { DEFAULT_PROFILE_FILENAME } = require('../utils/constants');
 
 class User {
   constructor(userData) {
@@ -9,7 +10,7 @@ class User {
     this.email = userData.email;
     this.phone = userData.phone;
     this.password = userData.password;
-    this.profileImage = userData.profileImage || 'default-profile.png';
+    this.profileImage = userData.profileImage || DEFAULT_PROFILE_FILENAME;
     this.role = userData.role || 'customer';
   }
 

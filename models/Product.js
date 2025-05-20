@@ -1,4 +1,5 @@
 const { pool } = require('../config/db');
+const { DEFAULT_PRODUCT_FILENAME } = require('../utils/constants');
 
 class Product {
   constructor(productData) {
@@ -7,7 +8,7 @@ class Product {
     this.description = productData.description;
     this.price = productData.price;
     this.category_id = productData.category_id;
-    this.image = productData.image;
+    this.image = productData.image || DEFAULT_PRODUCT_FILENAME;
     this.active = productData.active !== undefined ? productData.active : 1;
     this.featured = productData.featured !== undefined ? productData.featured : 0;
   }

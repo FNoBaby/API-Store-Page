@@ -1,12 +1,21 @@
 const User = require('../models/User');
 const { validationResult } = require('express-validator');
+const { DEFAULT_PROFILE_FILENAME } = require('../utils/constants');
+const { getImageUrl } = require('../utils/helpers');
 
 // Get all users (admin only)
 exports.getAllUsers = async (req, res) => {
   try {
     // Get all users and convert to array of user objects
     const users = await User.findAll();
-    res.json(users);
+    
+    // Format users data with proper image URLs
+    const formattedUsers = users.map(user => ({
+      ...user,
+      profileImage: getImageUrl(req, user.profileImage)
+    }));
+    
+    res.json(formattedUsers);
   } catch (error) {
     console.error('Get users error:', error);
     res.status(500).json({ message: 'Server error retrieving users' });
@@ -22,7 +31,13 @@ exports.getUserById = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    res.json(user);
+    // Format user data with proper image URL
+    const formattedUser = {
+      ...user,
+      profileImage: getImageUrl(req, user.profileImage)
+    };
+    
+    res.json(formattedUser);
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ message: 'Server error retrieving user' });
@@ -40,6 +55,17 @@ exports.updateProfile = async (req, res) => {
 
     const { name, surname, email, phone } = req.body;
     
+    // Handle profile image    let profileImage = req.user.profileImage;
+    if (req.file) {
+      // If a new file was uploaded, use that
+      profileImage = req.file.filename;
+      console.log(`New profile image uploaded: ${profileImage}`);
+    } else if (!profileImage || profileImage === '') {
+      // If no image was provided and user doesn't have one, use the default
+      profileImage = DEFAULT_PROFILE_FILENAME;
+      console.log('Using default profile image');
+    }
+    
     // Make sure we're updating the authenticated user
     const userToUpdate = new User({
       id: req.user.id,
@@ -47,7 +73,7 @@ exports.updateProfile = async (req, res) => {
       surname,
       email,
       phone,
-      profileImage: req.file ? req.file.filename : req.user.profileImage
+      profileImage
     });
     
     // Check email uniqueness if changed
@@ -71,13 +97,18 @@ exports.updateProfile = async (req, res) => {
     if (!updated) {
       return res.status(400).json({ message: 'Failed to update profile' });
     }
-    
-    // Get updated user data
+      // Get updated user data
     const updatedUser = await User.findById(req.user.id);
+    
+    // Format user data with proper image URL
+    const formattedUser = {
+      ...updatedUser,
+      profileImage: getImageUrl(req, updatedUser.profileImage)
+    };
     
     res.json({
       message: 'Profile updated successfully',
-      user: updatedUser
+      user: formattedUser
     });
   } catch (error) {
     console.error('Update profile error:', error);
