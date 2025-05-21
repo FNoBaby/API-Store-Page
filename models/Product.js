@@ -18,8 +18,8 @@ class Product {
     try {
       let query = `
         SELECT p.productID as id, p.name, p.description, p.price, 
-        p.category as category_id, c.name as category_name, 
-        p.image, p.active, p.featured
+        p.category as category_id, c.name as category_name,
+        p.imagePath as image, p.active
         FROM products p
         LEFT JOIN categories c ON p.category = c.categoryID
       `;
@@ -58,8 +58,8 @@ class Product {
     try {
       const query = `
         SELECT p.productID as id, p.name, p.description, p.price, 
-        p.category as category_id, c.name as category_name, 
-        p.image, p.active, p.featured
+        p.category as category_id, c.name as category_name,
+        p.imagePath as image, p.active
         FROM products p
         LEFT JOIN categories c ON p.category = c.categoryID
         WHERE p.productID = ?
@@ -83,8 +83,8 @@ class Product {
   async create() {
     try {
       const query = `
-        INSERT INTO products (name, description, price, category, image, active, featured) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO products (name, description, price, category, active, featured) 
+        VALUES (?, ?, ?, ?, ?, ?)
       `;
       
       const [result] = await pool.execute(query, [
@@ -92,7 +92,6 @@ class Product {
         this.description,
         this.price,
         this.category_id,
-        this.image,
         this.active,
         this.featured
       ]);
@@ -108,9 +107,10 @@ class Product {
   // Update a product
   async update() {
     try {
-      let query = `
+      const query = `
         UPDATE products
         SET name = ?, description = ?, price = ?, category = ?, active = ?, featured = ?
+        WHERE productID = ?
       `;
       
       const params = [
@@ -119,17 +119,9 @@ class Product {
         this.price,
         this.category_id,
         this.active,
-        this.featured
+        this.featured,
+        this.id
       ];
-      
-      // Only update image if a new one is provided
-      if (this.image) {
-        query += ', image = ?';
-        params.push(this.image);
-      }
-      
-      query += ' WHERE productID = ?';
-      params.push(this.id);
       
       const [result] = await pool.execute(query, params);
       return result.affectedRows > 0;
@@ -172,10 +164,19 @@ class Product {
   // Get random products
   static async getRandomProducts(limit = 4) {
     try {
+      // Check if image column exists
+      let hasImageColumn = false;
+      try {
+        const [columns] = await pool.execute("SHOW COLUMNS FROM products LIKE 'image'");
+        hasImageColumn = columns.length > 0;
+      } catch (error) {
+        console.warn("Couldn't check for image column:", error.message);
+      }
+      
       const query = `
         SELECT p.productID as id, p.name, p.description, p.price, 
-        p.category as category_id, c.name as category_name, 
-        p.image, p.active, p.featured
+        p.category as category_id, c.name as category_name,
+        ${hasImageColumn ? 'p.image,' : ''} p.active, p.featured
         FROM products p
         LEFT JOIN categories c ON p.category = c.categoryID
         WHERE p.active = 1

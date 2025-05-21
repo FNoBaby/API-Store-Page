@@ -10,10 +10,15 @@ exports.getAllProducts = async (req, res) => {
     const products = await Product.getAll(search, category);
     
     // Format products data with proper image URLs
-    const formattedProducts = products.map(product => ({
-      ...product,
-      image: getProductImageUrl(req, product.image)
-    }));
+    const formattedProducts = products.map(product => {
+      // Generate an image filename based on the product ID
+      const productImage = `product_${product.id}.jpg`;
+      
+      return {
+        ...product,
+        image: getProductImageUrl(req, productImage)
+      };
+    });
     
     res.json(formattedProducts);
   } catch (error) {
@@ -31,10 +36,13 @@ exports.getProductById = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
     
+    // Generate an image filename based on the product ID
+    const productImage = `product_${product.id}.jpg`;
+    
     // Format product data with proper image URL
     const formattedProduct = {
       ...product,
-      image: getProductImageUrl(req, product.image)
+      image: getProductImageUrl(req, productImage)
     };
     
     res.json(formattedProduct);
@@ -51,10 +59,15 @@ exports.getRandomProducts = async (req, res) => {
     const products = await Product.getRandomProducts(limit);
     
     // Format products data with proper image URLs
-    const formattedProducts = products.map(product => ({
-      ...product,
-      image: getProductImageUrl(req, product.image)
-    }));
+    const formattedProducts = products.map(product => {
+      // Generate an image filename based on the product ID
+      const productImage = `product_${product.id}.jpg`;
+      
+      return {
+        ...product,
+        image: getProductImageUrl(req, productImage)
+      };
+    });
     
     res.json(formattedProducts);
   } catch (error) {

@@ -80,6 +80,6 @@ exports.getProductImageUrl = (req, imageName) => {
     return imageName;
   }
   
-  // Return constructed URL to the image
-  return `${req.protocol}://${req.get('host')}/uploads/${imageName}`;
+  // Return constructed URL to the image in the products subdirectory
+  return `${req.protocol}://${req.get('host')}/uploads/products/${imageName}`;
 };
