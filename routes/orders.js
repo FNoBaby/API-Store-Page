@@ -5,7 +5,8 @@ const {
   getUserOrders, 
   getOrderDetails, 
   getAllOrders, 
-  updateOrderStatus 
+  updateOrderStatus,
+  updateDeliveryDate
 } = require('../controllers/orderController');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
@@ -34,5 +35,14 @@ router.put('/:id/status', [
     .isIn(['pending', 'processing', 'completed', 'cancelled'])
     .withMessage('Status must be pending, processing, completed, or cancelled')
 ], updateOrderStatus);
+
+// Update order delivery date (admin only)
+router.put('/:id/delivery-date', [
+  admin,
+  // Validation rules
+  body('delivery_date')
+    .optional({ nullable: true })
+    .isISO8601().withMessage('Delivery date must be in ISO 8601 format (YYYY-MM-DD)')
+], updateDeliveryDate);
 
 module.exports = router;

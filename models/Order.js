@@ -1,12 +1,12 @@
 const { pool } = require('../config/db');
 
-class Order {
-  constructor(orderData) {
+class Order {  constructor(orderData) {
     this.id = orderData.id;
     this.user_id = orderData.user_id;
     this.total_amount = orderData.total_amount;
     this.status = orderData.status || 'pending';
     this.created_at = orderData.created_at;
+    this.delivery_date = orderData.delivery_date || null;
     this.items = orderData.items || [];
   }
 
@@ -17,11 +17,10 @@ class Order {
     try {
       // Begin transaction
       await connection.beginTransaction();
-      
-      // Insert order
+        // Insert order
       const [orderResult] = await connection.execute(
-        'INSERT INTO orders (userID, totalPrice, status, orderDate) VALUES (?, ?, ?, NOW())',
-        [this.user_id, this.total_amount, this.status]
+        'INSERT INTO orders (userID, totalPrice, status, orderDate, delivery_date) VALUES (?, ?, ?, NOW(), ?)',
+        [this.user_id, this.total_amount, this.status, this.delivery_date]
       );
       
       this.id = orderResult.insertId;
@@ -48,12 +47,11 @@ class Order {
   }
   // Get all orders with optional user filter
   static async getAll(userId = null) {
-    try {
-      let query = `
+    try {      let query = `
         SELECT o.orderID as id, o.userID as user_id, 
         CONCAT(u.name, ' ', u.surname) as user_name,
         o.totalPrice as total_amount, o.status as status, 
-        o.orderDate as created_at
+        o.orderDate as created_at, o.delivery_date as delivery_date
         FROM orders o
         LEFT JOIN users u ON o.userID = u.userID
       `;
@@ -93,11 +91,10 @@ class Order {
   static async getById(id) {
     try {
       // Get order
-      const [orderRows] = await pool.execute(
-        `SELECT o.orderID as id, o.userID as user_id, 
+      const [orderRows] = await pool.execute(        `SELECT o.orderID as id, o.userID as user_id, 
         CONCAT(u.name, ' ', u.surname) as user_name,
         o.totalPrice as total_amount, o.status as status, 
-        o.orderDate as created_at
+        o.orderDate as created_at, o.delivery_date as delivery_date
         FROM orders o
         LEFT JOIN users u ON o.userID = u.userID
         WHERE o.orderID = ?`,
@@ -134,7 +131,6 @@ class Order {
       throw error;
     }
   }
-
   // Update order status
   async updateStatus() {
     try {
@@ -152,6 +148,25 @@ class Order {
       return result.affectedRows > 0;
     } catch (error) {
       console.error('Error updating order status:', error);
+    }
+  }
+    // Update order delivery date
+  async updateDeliveryDate() {
+    try {
+      // Validate delivery date format (should be a valid date or null)
+      if (this.delivery_date !== null && isNaN(new Date(this.delivery_date).getTime())) {
+        throw new Error('Invalid delivery date format');
+      }
+      
+      const [result] = await pool.execute(
+        'UPDATE orders SET delivery_date = ? WHERE orderID = ?',
+        [this.delivery_date, this.id]
+      );
+      
+      return result.affectedRows > 0;
+    } catch (error) {
+      console.error('Error updating delivery date:', error);
+      throw error;
       throw error;
     }
   }
@@ -186,10 +201,9 @@ class Order {
   }
   // Get orders by user ID
   static async getByUserId(userId) {
-    try {
-      // First get the orders
+    try {      // First get the orders
       const [orderRows] = await pool.execute(
-        'SELECT orderID as id, userID as user_id, totalPrice as total_amount, status as status, orderDate as created_at FROM orders WHERE userID = ? ORDER BY orderDate DESC',
+        'SELECT orderID as id, userID as user_id, totalPrice as total_amount, status as status, orderDate as created_at, delivery_date as delivery_date FROM orders WHERE userID = ? ORDER BY orderDate DESC',
         [userId]
       );
         // If there are no orders, return empty array

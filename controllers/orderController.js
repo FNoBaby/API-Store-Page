@@ -12,8 +12,11 @@ exports.createOrder = async (req, res) => {
       return res.status(400).json({ message: 'Cart is empty' });
     }
     
+    // Get delivery date from request body if provided
+    const { delivery_date } = req.body;
+    
     // Create order from cart
-    const orderId = await cart.checkout();
+    const orderId = await cart.checkout(delivery_date);
     
     // Get the created order
     const order = await Order.getById(orderId);
@@ -110,5 +113,47 @@ exports.updateOrderStatus = async (req, res) => {
   } catch (error) {
     console.error('Update order status error:', error);
     res.status(500).json({ message: 'Server error updating order status' });
+  }
+};
+
+// Update order delivery date (admin only)
+exports.updateDeliveryDate = async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { delivery_date } = req.body;
+    
+    // Check if order exists
+    const existingOrder = await Order.getById(req.params.id);
+    
+    if (!existingOrder) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    
+    const order = new Order({
+      id: parseInt(req.params.id),
+      delivery_date
+    });
+    
+    const updated = await order.updateDeliveryDate();
+    
+    if (!updated) {
+      return res.status(400).json({ message: 'Failed to update delivery date' });
+    }
+    
+    // Get the updated order
+    const updatedOrder = await Order.getById(req.params.id);
+    
+    res.json({
+      message: 'Order delivery date updated successfully',
+      order: updatedOrder
+    });
+  } catch (error) {
+    console.error('Update delivery date error:', error);
+    res.status(500).json({ message: 'Server error updating delivery date' });
   }
 };

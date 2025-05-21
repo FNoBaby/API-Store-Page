@@ -165,9 +165,8 @@ class Cart {
       throw error;
     }
   }
-
   // Convert cart to order
-  async checkout() {
+  async checkout(deliveryDate = null) {
     try {
       // Get fresh cart data with latest prices
       const cart = await Cart.getByUserId(this.user_id);
@@ -188,6 +187,7 @@ class Cart {
         user_id: this.user_id,
         total_amount: cart.total_amount,
         status: 'pending',
+        delivery_date: deliveryDate,
         items: orderItems
       });
       

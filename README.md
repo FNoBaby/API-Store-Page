@@ -344,6 +344,12 @@ DELETE /api/cart
 ```
 POST /api/orders
 ```
+Request body:
+```json
+{
+  "delivery_date": "2023-12-31" // Optional, expected date of delivery in ISO 8601 format (YYYY-MM-DD)
+}
+```
 
 #### Get user's orders
 ```
@@ -368,6 +374,17 @@ Request body:
 ```json
 {
   "status": "processing" // Options: pending, processing, completed, cancelled
+}
+```
+
+#### Update order delivery date (Admin only)
+```
+PUT /api/orders/:id/delivery-date
+```
+Request body:
+```json
+{
+  "delivery_date": "2023-12-31" // Expected date of delivery in ISO 8601 format (YYYY-MM-DD)
 }
 ```
 
@@ -406,6 +423,7 @@ The API works with the following database schema:
 - **totalAmount**: decimal(10,2)
 - **orderStatus**: enum('pending', 'processing', 'completed', 'cancelled')
 - **orderDate**: datetime
+- **delivery_date**: date (nullable, date when order should be delivered)
 
 ### Order Items
 - **orderItemID**: int (Primary Key, Auto Increment)
