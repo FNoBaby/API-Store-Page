@@ -172,11 +172,10 @@ class Product {
       } catch (error) {
         console.warn("Couldn't check for image column:", error.message);
       }
-      
-      const query = `
+        const query = `
         SELECT p.productID as id, p.name, p.description, p.price, 
         p.category as category_id, c.name as category_name,
-        ${hasImageColumn ? 'p.image,' : ''} p.active, p.featured
+        ${hasImageColumn ? 'p.image,' : ''} p.active
         FROM products p
         LEFT JOIN categories c ON p.category = c.categoryID
         WHERE p.active = 1
