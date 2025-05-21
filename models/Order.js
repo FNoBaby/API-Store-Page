@@ -100,7 +100,7 @@ class Order {
       // Get order items
       const [itemsRows] = await pool.execute(
         `SELECT oi.orderItemID as id, oi.productID as product_id, 
-        p.name as product_name, p.image as product_image,
+        p.name as product_name, p.imagePath as product_image,
         oi.quantity, oi.price
         FROM order_items oi
         LEFT JOIN products p ON oi.productID = p.productID
@@ -187,7 +187,7 @@ class Order {
     try {
       const [rows] = await pool.execute(
         `SELECT oi.orderItemID as id, oi.productID as product_id, 
-        p.name as product_name, p.image as product_image,
+        p.name as product_name, p.imagePath as product_image,
         oi.quantity, oi.price
         FROM order_items oi
         LEFT JOIN products p ON oi.productID = p.productID
@@ -332,7 +332,7 @@ class Order {
     try {
       const [rows] = await pool.execute(
         `SELECT oi.orderItemID as id, oi.productID as product_id, 
-        p.name as product_name, p.image as product_image,
+        p.name as product_name, p.imagePath as product_image,
         oi.quantity, oi.price
         FROM order_items oi
         LEFT JOIN products p ON oi.productID = p.productID
