@@ -44,11 +44,41 @@ exports.getProductById = async (req, res) => {
       ...product,
       image: getProductImageUrl(req, productImage)
     };
-    
-    res.json(formattedProduct);
+      res.json(formattedProduct);
   } catch (error) {
     console.error('Get product error:', error);
     res.status(500).json({ message: 'Server error retrieving product' });
+  }
+};
+
+// Get product image by ID
+exports.getProductImage = async (req, res) => {
+  try {
+    const product = await Product.getById(req.params.id);
+    
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    
+    // Generate the image filename based on the product ID
+    const productImageFilename = `product_${product.id}.jpg`;
+    const imagePath = `${process.cwd()}/uploads/products/${productImageFilename}`;
+    const defaultPath = `${process.cwd()}/uploads/${DEFAULT_PRODUCT_FILENAME}`;
+    
+    // Check if the image file exists
+    const fs = require('fs');
+    if (fs.existsSync(imagePath)) {
+      // Add CORS headers for the image
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+      return res.sendFile(imagePath);
+    } else {
+      // If the product image doesn't exist, serve the default image
+      return res.sendFile(defaultPath);
+    }
+  } catch (error) {
+    console.error('Get product image error:', error);
+    res.status(500).json({ message: 'Server error retrieving product image' });
   }
 };
 

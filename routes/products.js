@@ -3,6 +3,7 @@ const router = express.Router();
 const { 
   getAllProducts, 
   getProductById, 
+  getProductImage,
   createProduct, 
   updateProduct, 
   deleteProduct, 
@@ -21,6 +22,9 @@ router.get('/random', getRandomProducts);
 
 // Get product by ID
 router.get('/:id', getProductById);
+
+// Get product image by ID
+router.get('/:id/image', getProductImage);
 
 // Create a new product (admin only)
 router.post('/', [

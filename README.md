@@ -213,6 +213,12 @@ Query parameters:
 GET /api/products/:id
 ```
 
+#### Get product image
+```
+GET /api/products/:id/image
+```
+Direct access to product images. Returns the actual image file (JPG/PNG) rather than JSON data.
+
 #### Create product (Admin only)
 ```
 POST /api/products
