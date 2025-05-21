@@ -20,7 +20,7 @@ class Order {
       
       // Insert order
       const [orderResult] = await connection.execute(
-        'INSERT INTO orders (userID, totalAmount, orderStatus, orderDate) VALUES (?, ?, ?, NOW())',
+        'INSERT INTO orders (userID, totalPrice, status, orderDate) VALUES (?, ?, ?, NOW())',
         [this.user_id, this.total_amount, this.status]
       );
       
@@ -53,7 +53,7 @@ class Order {
       let query = `
         SELECT o.orderID as id, o.userID as user_id, 
         CONCAT(u.name, ' ', u.surname) as user_name,
-        o.totalAmount as total_amount, o.orderStatus as status, 
+        o.totalPrice as total_amount, o.status as status, 
         o.orderDate as created_at
         FROM orders o
         LEFT JOIN users u ON o.userID = u.userID
@@ -83,7 +83,7 @@ class Order {
       const [orderRows] = await pool.execute(
         `SELECT o.orderID as id, o.userID as user_id, 
         CONCAT(u.name, ' ', u.surname) as user_name,
-        o.totalAmount as total_amount, o.orderStatus as status, 
+        o.totalPrice as total_amount, o.status as status, 
         o.orderDate as created_at
         FROM orders o
         LEFT JOIN users u ON o.userID = u.userID
@@ -127,13 +127,222 @@ class Order {
       }
       
       const [result] = await pool.execute(
-        'UPDATE orders SET orderStatus = ? WHERE orderID = ?',
+        'UPDATE orders SET status = ? WHERE orderID = ?',
         [this.status, this.id]
       );
       
       return result.affectedRows > 0;
     } catch (error) {
       console.error('Error updating order status:', error);
+      throw error;
+    }
+  }
+
+  // Delete order
+  async delete() {
+    try {
+      const [result] = await pool.execute(
+        'DELETE FROM orders WHERE orderID = ?',
+        [this.id]
+      );
+      
+      return result.affectedRows > 0;
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      throw error;
+    }
+  }
+
+  // Get order count
+  static async getCount() {
+    try {
+      const [rows] = await pool.execute(
+        'SELECT COUNT(*) as count FROM orders'
+      );
+      
+      return rows[0].count;
+    } catch (error) {
+      console.error('Error getting order count:', error);
+      throw error;
+    }
+  }
+
+  // Get orders by user ID
+  static async getByUserId(userId) {
+    try {
+      const [rows] = await pool.execute(
+        'SELECT orderID as id, userID as user_id, totalPrice as total_amount, status as status, orderDate as created_at FROM orders WHERE userID = ? ORDER BY orderDate DESC',
+        [userId]
+      );
+      
+      return rows;
+    } catch (error) {
+      console.error('Error getting orders by user ID:', error);
+      throw error;
+    }
+  }
+
+  // Get order items by order ID
+  static async getItemsByOrderId(orderId) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT oi.orderItemID as id, oi.productID as product_id, 
+        p.name as product_name, p.image as product_image,
+        oi.quantity, oi.price
+        FROM order_items oi
+        LEFT JOIN products p ON oi.productID = p.productID
+        WHERE oi.orderID = ?`,
+        [orderId]
+      );
+      
+      return rows;
+    } catch (error) {
+      console.error('Error getting order items:', error);
+      throw error;
+    }
+  }
+
+  // Get order total amount by order ID
+  static async getTotalAmountByOrderId(orderId) {
+    try {
+      const [rows] = await pool.execute(
+        'SELECT totalPrice as total_amount FROM orders WHERE orderID = ?',
+        [orderId]
+      );
+      
+      if (rows.length === 0) {
+        return null;
+      }
+      
+      return rows[0].total_amount;
+    } catch (error) {
+      console.error('Error getting order total amount:', error);
+      throw error;
+    }
+  }
+
+  // Get order status by order ID
+  static async getStatusByOrderId(orderId) {
+    try {
+      const [rows] = await pool.execute(
+        'SELECT status as status FROM orders WHERE orderID = ?',
+        [orderId]
+      );
+      
+      if (rows.length === 0) {
+        return null;
+      }
+      
+      return rows[0].status;
+    } catch (error) {
+      console.error('Error getting order status:', error);
+      throw error;
+    }
+  }
+
+  // Get order date by order ID
+  static async getDateByOrderId(orderId) {
+    try {
+      const [rows] = await pool.execute(
+        'SELECT orderDate as created_at FROM orders WHERE orderID = ?',
+        [orderId]
+      );
+      
+      if (rows.length === 0) {
+        return null;
+      }
+      
+      return rows[0].created_at;
+    } catch (error) {
+      console.error('Error getting order date:', error);
+      throw error;
+    }
+  }
+
+  // Get order user ID by order ID
+  static async getUserIdByOrderId(orderId) {
+    try {
+      const [rows] = await pool.execute(
+        'SELECT userID as user_id FROM orders WHERE orderID = ?',
+        [orderId]
+      );
+      
+      if (rows.length === 0) {
+        return null;
+      }
+      
+      return rows[0].user_id;
+    } catch (error) {
+      console.error('Error getting order user ID:', error);
+      throw error;
+    }
+  }
+
+  // Get order ID by user ID
+  static async getOrderIdByUserId(userId) {
+    try {
+      const [rows] = await pool.execute(
+        'SELECT orderID as id FROM orders WHERE userID = ?',
+        [userId]
+      );
+      
+      if (rows.length === 0) {
+        return null;
+      }
+      
+      return rows[0].id;
+    } catch (error) {
+      console.error('Error getting order ID by user ID:', error);
+      throw error;
+    }
+  }
+
+  // Get order items count by order ID
+  static async getItemsCountByOrderId(orderId) {
+    try {
+      const [rows] = await pool.execute(
+        'SELECT COUNT(*) as count FROM order_items WHERE orderID = ?',
+        [orderId]
+      );
+      
+      return rows[0].count;
+    } catch (error) {
+      console.error('Error getting order items count:', error);
+      throw error;
+    }
+  }
+
+  // Get order items total amount by order ID
+  static async getItemsTotalAmountByOrderId(orderId) {
+    try {
+      const [rows] = await pool.execute(
+        'SELECT SUM(price * quantity) as total_amount FROM order_items WHERE orderID = ?',
+        [orderId]
+      );
+      
+      return rows[0].total_amount;
+    } catch (error) {
+      console.error('Error getting order items total amount:', error);
+      throw error;
+    }
+  }
+
+  // Get order items by user ID
+  static async getItemsByUserId(userId) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT oi.orderItemID as id, oi.productID as product_id, 
+        p.name as product_name, p.image as product_image,
+        oi.quantity, oi.price
+        FROM order_items oi
+        LEFT JOIN products p ON oi.productID = p.productID
+        WHERE oi.userID = ?`,
+        [userId]
+      );
+      
+      return rows;
+    } catch (error) {
+      console.error('Error getting order items by user ID:', error);
       throw error;
     }
   }

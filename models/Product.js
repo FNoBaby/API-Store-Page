@@ -191,6 +191,27 @@ class Product {
       throw error;
     }
   }
+
+  // Get product image URL
+  static getProductImageUrl(req, image) {
+    const baseUrl = `${req.protocol}://${req.get('host')}/images/products/`;
+    return `${baseUrl}${image || DEFAULT_PRODUCT_FILENAME}`;
+  }
+
+  // Get product image filename
+  static getProductImageFilename(productId) {
+    return `product_${productId}.jpg`;
+  }
+
+  // Get product image path
+  static getProductImagePath(productId) {
+    return `images/products/product_${productId}.jpg`;
+  }
+
+  // Get product image path for admin
+  static getProductImagePathAdmin(productId) {
+    return `images/products/product_${productId}.jpg`;
+  }
 }
 
 module.exports = Product;

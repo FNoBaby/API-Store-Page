@@ -20,11 +20,11 @@ router.post('/', createOrder);
 // Get user's orders
 router.get('/', getUserOrders);
 
-// Get order details
-router.get('/:id', getOrderDetails);
-
 // Get all orders (admin only)
 router.get('/all', admin, getAllOrders);
+
+// Get order details
+router.get('/:id', getOrderDetails);
 
 // Update order status (admin only)
 router.put('/:id/status', [

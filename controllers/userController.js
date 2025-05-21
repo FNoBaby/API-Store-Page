@@ -7,7 +7,7 @@ const { getImageUrl } = require('../utils/helpers');
 exports.getAllUsers = async (req, res) => {
   try {
     // Get all users and convert to array of user objects
-    const users = await User.findAll();
+    const users = await User.getAll();
     
     // Format users data with proper image URLs
     const formattedUsers = users.map(user => ({

@@ -219,6 +219,245 @@ class User {
       throw error;
     }
   }
+
+  static async getAll() {
+    try {
+      const [rows] = await pool.execute(
+        'SELECT userID as id, name, surname, email, phone, profileImage, role FROM users'
+      );
+      
+      return rows.map(user => ({
+        id: user.id,
+        name: user.name,
+        surname: user.surname,
+        email: user.email,
+        phone: user.phone,
+        profileImage: user.profileImage,
+        role: user.role
+      }));
+    } catch (error) {
+      console.error('Error getting all users:', error);
+      throw error;
+    }
+  }
+
+  // Get user by email
+  static async findByEmail(email) {
+    try {
+      const [rows] = await pool.execute(
+        'SELECT userID as id, name, surname, email, phone, profileImage, role FROM users WHERE email = ? LIMIT 1',
+        [email]
+      );
+      
+      if (rows.length === 0) {
+        return null;
+      }
+      
+      const userData = rows[0];
+      return {
+        id: userData.id,
+        name: userData.name,
+        surname: userData.surname,
+        email: userData.email,
+        phone: userData.phone,
+        profileImage: userData.profileImage,
+        role: userData.role
+      };
+    } catch (error) {
+      console.error('Error finding user by email:', error);
+      throw error;
+    }
+  }
+
+  // Get user by phone
+  static async findByPhone(phone) {
+    try {
+      const [rows] = await pool.execute(
+        'SELECT userID as id, name, surname, email, phone, profileImage, role FROM users WHERE phone = ? LIMIT 1',
+        [phone]
+      );
+      
+      if (rows.length === 0) {
+        return null;
+      }
+      
+      const userData = rows[0];
+      return {
+        id: userData.id,
+        name: userData.name,
+        surname: userData.surname,
+        email: userData.email,
+        phone: userData.phone,
+        profileImage: userData.profileImage,
+        role: userData.role
+      };
+    } catch (error) {
+      console.error('Error finding user by phone:', error);
+      throw error;
+    }
+  }
+
+  // Get user by ID with orders
+  static async findByIdWithOrders(id) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT u.userID as id, u.name, u.surname, u.email, u.phone, 
+        u.profileImage, u.role, o.orderID as order_id, o.totalAmount as total_amount
+        FROM users u
+        LEFT JOIN orders o ON u.userID = o.userID
+        WHERE u.userID = ?`,
+        [id]
+      );
+      
+      if (rows.length === 0) {
+        return null;
+      }
+      
+      const userData = rows[0];
+      return {
+        id: userData.id,
+        name: userData.name,
+        surname: userData.surname,
+        email: userData.email,
+        phone: userData.phone,
+        profileImage: userData.profileImage,
+        role: userData.role,
+        orders: rows.map(row => ({
+          orderId: row.order_id,
+          totalAmount: row.total_amount
+        }))
+      };
+    } catch (error) {
+      console.error('Error finding user by ID with orders:', error);
+      throw error;
+    }
+  }
+
+  // Get user by ID with cart
+  static async findByIdWithCart(id) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT u.userID as id, u.name, u.surname, u.email, u.phone, 
+        u.profileImage, u.role, c.id as cart_id, c.totalAmount as total_amount
+        FROM users u
+        LEFT JOIN carts c ON u.userID = c.user_id
+        WHERE u.userID = ?`,
+        [id]
+      );
+      
+      if (rows.length === 0) {
+        return null;
+      }
+      
+      const userData = rows[0];
+      return {
+        id: userData.id,
+        name: userData.name,
+        surname: userData.surname,
+        email: userData.email,
+        phone: userData.phone,
+        profileImage: userData.profileImage,
+        role: userData.role,
+        cart: {
+          cartId: userData.cart_id,
+          totalAmount: userData.total_amount
+        }
+      };
+    } catch (error) {
+      console.error('Error finding user by ID with cart:', error);
+      throw error;
+    }
+  }
+
+  // Get user by ID with orders and cart
+  static async findByIdWithOrdersAndCart(id) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT u.userID as id, u.name, u.surname, u.email, u.phone, 
+        u.profileImage, u.role, o.orderID as order_id, o.totalAmount as total_amount,
+        c.id as cart_id, c.totalAmount as cart_total_amount
+        FROM users u
+        LEFT JOIN orders o ON u.userID = o.userID
+        LEFT JOIN carts c ON u.userID = c.user_id
+        WHERE u.userID = ?`,
+        [id]
+      );
+      
+      if (rows.length === 0) {
+        return null;
+      }
+      
+      const userData = rows[0];
+      return {
+        id: userData.id,
+        name: userData.name,
+        surname: userData.surname,
+        email: userData.email,
+        phone: userData.phone,
+        profileImage: userData.profileImage,
+        role: userData.role,
+        orders: rows.map(row => ({
+          orderId: row.order_id,
+          totalAmount: row.total_amount
+        })),
+        cart: {
+          cartId: userData.cart_id,
+          totalAmount: userData.cart_total_amount
+        }
+      };
+    } catch (error) {
+      console.error('Error finding user by ID with orders and cart:', error);
+      throw error;
+    }
+  }
+
+  // Get user by ID with orders and cart and products
+  static async findByIdWithOrdersAndCartAndProducts(id) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT u.userID as id, u.name, u.surname, u.email, u.phone, 
+        u.profileImage, u.role, o.orderID as order_id, o.totalAmount as total_amount,
+        c.id as cart_id, c.totalAmount as cart_total_amount,
+        p.productID as product_id, p.name as product_name
+        FROM users u
+        LEFT JOIN orders o ON u.userID = o.userID
+        LEFT JOIN carts c ON u.userID = c.user_id
+        LEFT JOIN products p ON o.productID = p.productID
+        WHERE u.userID = ?`,
+        [id]
+      );
+      
+      if (rows.length === 0) {
+        return null;
+      }
+      
+      const userData = rows[0];
+      return {
+        id: userData.id,
+        name: userData.name,
+        surname: userData.surname,
+        email: userData.email,
+        phone: userData.phone,
+        profileImage: userData.profileImage,
+        role: userData.role,
+        orders: rows.map(row => ({
+          orderId: row.order_id,
+          totalAmount: row.total_amount
+        })),
+        cart: {
+          cartId: userData.cart_id,
+          totalAmount: userData.cart_total_amount
+        },
+        products: rows.map(row => ({
+          productId: row.product_id,
+          productName: row.product_name
+        }))
+      };
+    } catch (error) {
+      console.error('Error finding user by ID with orders and cart and products:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = User;
