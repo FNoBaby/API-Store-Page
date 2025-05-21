@@ -33,11 +33,10 @@ class Cart {
       }
       
       const cartId = cartRows[0].id;
-      
-      // Get cart items
+        // Get cart items
       const [itemRows] = await pool.execute(
         `SELECT ci.id, ci.product_id, p.name as product_name, 
-        p.image as product_image, p.price as product_price, 
+        p.imagePath as product_image, p.price as product_price, 
         ci.quantity, (p.price * ci.quantity) as item_total
         FROM cart_items ci
         JOIN products p ON ci.product_id = p.productID
