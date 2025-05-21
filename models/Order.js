@@ -46,7 +46,6 @@ class Order {
       connection.release();
     }
   }
-
   // Get all orders with optional user filter
   static async getAll(userId = null) {
     try {
@@ -67,9 +66,23 @@ class Order {
       }
       
       query += ' ORDER BY o.orderDate DESC';
+        const [orderRows] = await pool.execute(query, params);
       
-      const [rows] = await pool.execute(query, params);
-      return rows;
+      // If there are no orders, return empty array
+      if (orderRows.length === 0) {
+        return [];
+      }
+      
+      // For each order, get the total item count accounting for quantities
+      for (const order of orderRows) {
+        const [countRows] = await pool.execute(
+          'SELECT SUM(quantity) as item_count FROM order_items WHERE orderID = ?',
+          [order.id]
+        );
+        order.item_count = countRows[0].item_count || 0; // Use 0 if result is NULL
+      }
+      
+      return orderRows;
     } catch (error) {
       console.error('Error getting orders:', error);
       throw error;
@@ -94,8 +107,8 @@ class Order {
       if (orderRows.length === 0) {
         return null;
       }
+        const order = orderRows[0];
       
-      const order = orderRows[0];
       // Get order items
       const [itemsRows] = await pool.execute(
         `SELECT oi.orderItemID as id, oi.productID as product_id, 
@@ -106,8 +119,14 @@ class Order {
         WHERE oi.orderID = ?`,
         [id]
       );
+        order.items = itemsRows;
       
-      order.items = itemsRows;
+      // Calculate total item count based on quantities
+      let totalItemCount = 0;
+      for (const item of itemsRows) {
+        totalItemCount += item.quantity;
+      }
+      order.item_count = totalItemCount;
       
       return order;
     } catch (error) {
@@ -165,22 +184,34 @@ class Order {
       throw error;
     }
   }
-
   // Get orders by user ID
   static async getByUserId(userId) {
     try {
-      const [rows] = await pool.execute(
+      // First get the orders
+      const [orderRows] = await pool.execute(
         'SELECT orderID as id, userID as user_id, totalPrice as total_amount, status as status, orderDate as created_at FROM orders WHERE userID = ? ORDER BY orderDate DESC',
         [userId]
       );
+        // If there are no orders, return empty array
+      if (orderRows.length === 0) {
+        return [];
+      }
       
-      return rows;
+      // For each order, get the total item count accounting for quantities
+      for (const order of orderRows) {
+        const [countRows] = await pool.execute(
+          'SELECT SUM(quantity) as item_count FROM order_items WHERE orderID = ?',
+          [order.id]
+        );
+        order.item_count = countRows[0].item_count || 0; // Use 0 if result is NULL
+      }
+      
+      return orderRows;
     } catch (error) {
       console.error('Error getting orders by user ID:', error);
       throw error;
     }
   }
-
   // Get order items by order ID
   static async getItemsByOrderId(orderId) {
     try {
@@ -295,16 +326,15 @@ class Order {
       throw error;
     }
   }
-
   // Get order items count by order ID
   static async getItemsCountByOrderId(orderId) {
     try {
       const [rows] = await pool.execute(
-        'SELECT COUNT(*) as count FROM order_items WHERE orderID = ?',
+        'SELECT SUM(quantity) as count FROM order_items WHERE orderID = ?',
         [orderId]
       );
       
-      return rows[0].count;
+      return rows[0].count || 0; // Return 0 if there are no items
     } catch (error) {
       console.error('Error getting order items count:', error);
       throw error;

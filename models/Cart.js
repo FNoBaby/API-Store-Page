@@ -31,9 +31,9 @@ class Cart {
           total_amount: 0
         });
       }
+        const cartId = cartRows[0].id;
       
-      const cartId = cartRows[0].id;
-        // Get cart items
+      // Get cart items
       const [itemRows] = await pool.execute(
         `SELECT ci.id, ci.product_id, p.name as product_name, 
         p.imagePath as product_image, p.price as product_price, 

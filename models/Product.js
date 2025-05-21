@@ -15,11 +15,10 @@ class Product {
 
   // Get all products with optional search and category filter
   static async getAll(search = '', categoryId = null) {
-    try {
-      let query = `
+    try {      let query = `
         SELECT p.productID as id, p.name, p.description, p.price, 
         p.category as category_id, c.name as category_name,
-        p.imagePath, p.active
+        p.image, p.active
         FROM products p
         LEFT JOIN categories c ON p.category = c.categoryID
       `;
@@ -55,11 +54,10 @@ class Product {
 
   // Get product by ID
   static async getById(id) {
-    try {
-      const query = `
+    try {      const query = `
         SELECT p.productID as id, p.name, p.description, p.price, 
         p.category as category_id, c.name as category_name,
-        p.imagePath, p.active
+        p.image, p.active
         FROM products p
         LEFT JOIN categories c ON p.category = c.categoryID
         WHERE p.productID = ?
@@ -173,12 +171,10 @@ class Product {
         hasImageColumn = columns.length > 0;
       } catch (error) {
         console.warn("Couldn't check for image column:", error.message);
-      }
-      
-      const query = `
+      }        const query = `
         SELECT p.productID as id, p.name, p.description, p.price, 
         p.category as category_id, c.name as category_name,
-        ${hasImageColumn ? 'p.imagePath,' : ''} p.active
+        ${hasImageColumn ? 'p.image,' : ''} p.active
         FROM products p
         LEFT JOIN categories c ON p.category = c.categoryID
         WHERE p.active = 1
