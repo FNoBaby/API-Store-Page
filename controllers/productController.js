@@ -136,9 +136,8 @@ exports.updateProduct = async (req, res) => {
     if (!existingProduct) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    
-    // Handle product image
-    let image = null; // Default to not changing the image
+      // Handle product image
+    let image = existingProduct.image; // Default to keeping the existing image
     if (req.file) {
       image = req.file.filename;
       console.log(`Updated product image: ${image}`);
@@ -150,7 +149,7 @@ exports.updateProduct = async (req, res) => {
       description,
       price: parseFloat(price),
       category_id: parseInt(category_id),
-      image: image, // Only update image if file provided
+      image: image, // Use existing image if no new file uploaded
       active: active === 'true' || active === '1' ? 1 : 0,
       featured: featured === 'true' || featured === '1' ? 1 : 0
     });

@@ -24,12 +24,42 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors());
-app.use(helmet());
+
+// Configure CORS
+app.use(cors({
+  origin: '*', // Allow all origins or specify your frontend domains
+  credentials: true
+}));
+
+// Configure Helmet but allow images to be loaded from any origin
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
+
 app.use(morgan('dev'));
 
-// Static folder for uploads
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Static folder for uploads with appropriate headers
+app.use('/uploads', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
+
+// Special route for product images with CORS headers
+app.get('/uploads/products/:imageName', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+  
+  const imagePath = path.join(__dirname, 'uploads', 'products', req.params.imageName);
+  
+  // Check if the file exists
+  if (fs.existsSync(imagePath)) {
+    return res.sendFile(imagePath);
+  } else {
+    // Redirect to default product image if not found
+    return res.redirect(`/uploads/${DEFAULT_PRODUCT_FILENAME}`);
+  }
+});
 
 /**
  * Image Handling System
@@ -45,6 +75,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Special route to handle default profile image
 app.get(`/uploads/${DEFAULT_PROFILE_FILENAME}`, (req, res) => {
+  // Add CORS headers for images
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+  
   // Check if the file exists in the uploads folder
   const localPath = path.join(__dirname, 'uploads', DEFAULT_PROFILE_FILENAME);
   const defaultsPath = path.join(__dirname, 'uploads', 'defaults', DEFAULT_PROFILE_FILENAME);
@@ -64,6 +98,10 @@ app.get(`/uploads/${DEFAULT_PROFILE_FILENAME}`, (req, res) => {
 
 // Special route to handle default product image
 app.get(`/uploads/${DEFAULT_PRODUCT_FILENAME}`, (req, res) => {
+  // Add CORS headers for images
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+  
   // Check if the file exists in the uploads folder
   const localPath = path.join(__dirname, 'uploads', DEFAULT_PRODUCT_FILENAME);
   const defaultsPath = path.join(__dirname, 'uploads', 'defaults', DEFAULT_PRODUCT_FILENAME);

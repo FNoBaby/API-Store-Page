@@ -11,11 +11,24 @@ const {
 // Set storage engine
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    // Determine appropriate directory based on the route or file field
+    if (file.fieldname === 'image' && req.originalUrl.includes('/products')) {
+      // If uploading a product image, store in products subdirectory
+      cb(null, 'uploads/products/');
+    } else {
+      // For other uploads, use the main uploads directory
+      cb(null, 'uploads/');
+    }
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    // For product images, use the product ID if available
+    if (file.fieldname === 'image' && req.params.id && req.originalUrl.includes('/products')) {
+      cb(null, `product_${req.params.id}${path.extname(file.originalname)}`);
+    } else {
+      // For other files, generate a unique name
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
   }
 });
 
@@ -57,12 +70,18 @@ const ensureDefaultImages = () => {
     fs.mkdirSync(defaultsDir, { recursive: true });
     console.log('Created uploads/defaults directory');
   }
-
   // The uploads directory itself
   const uploadsDir = path.join(__dirname, '../uploads');
   if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
     console.log('Created uploads directory');
+  }
+  
+  // Create products directory if it doesn't exist
+  const productsDir = path.join(__dirname, '../uploads/products');
+  if (!fs.existsSync(productsDir)) {
+    fs.mkdirSync(productsDir, { recursive: true });
+    console.log('Created uploads/products directory');
   }
 
   // Verify that default images are valid image files

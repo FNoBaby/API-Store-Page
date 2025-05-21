@@ -19,7 +19,7 @@ class Product {
       let query = `
         SELECT p.productID as id, p.name, p.description, p.price, 
         p.category as category_id, c.name as category_name,
-        p.imagePath as image, p.active
+        p.imagePath, p.active
         FROM products p
         LEFT JOIN categories c ON p.category = c.categoryID
       `;
@@ -59,7 +59,7 @@ class Product {
       const query = `
         SELECT p.productID as id, p.name, p.description, p.price, 
         p.category as category_id, c.name as category_name,
-        p.imagePath as image, p.active
+        p.imagePath, p.active
         FROM products p
         LEFT JOIN categories c ON p.category = c.categoryID
         WHERE p.productID = ?
@@ -83,8 +83,8 @@ class Product {
   async create() {
     try {
       const query = `
-        INSERT INTO products (name, description, price, category, active, featured) 
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO products (name, description, price, category, image, active, featured) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)
       `;
       
       const [result] = await pool.execute(query, [
@@ -92,6 +92,7 @@ class Product {
         this.description,
         this.price,
         this.category_id,
+        this.image,
         this.active,
         this.featured
       ]);
@@ -109,7 +110,7 @@ class Product {
     try {
       const query = `
         UPDATE products
-        SET name = ?, description = ?, price = ?, category = ?, active = ?, featured = ?
+        SET name = ?, description = ?, price = ?, category = ?, image = ?, active = ?, featured = ?
         WHERE productID = ?
       `;
       
@@ -118,6 +119,7 @@ class Product {
         this.description,
         this.price,
         this.category_id,
+        this.image,
         this.active,
         this.featured,
         this.id
@@ -172,10 +174,11 @@ class Product {
       } catch (error) {
         console.warn("Couldn't check for image column:", error.message);
       }
-        const query = `
+      
+      const query = `
         SELECT p.productID as id, p.name, p.description, p.price, 
         p.category as category_id, c.name as category_name,
-        ${hasImageColumn ? 'p.image,' : ''} p.active
+        ${hasImageColumn ? 'p.imagePath,' : ''} p.active
         FROM products p
         LEFT JOIN categories c ON p.category = c.categoryID
         WHERE p.active = 1
@@ -193,7 +196,7 @@ class Product {
 
   // Get product image URL
   static getProductImageUrl(req, image) {
-    const baseUrl = `${req.protocol}://${req.get('host')}/images/products/`;
+    const baseUrl = `${req.protocol}://${req.get('host')}/uploads/products/`;
     return `${baseUrl}${image || DEFAULT_PRODUCT_FILENAME}`;
   }
 
@@ -204,12 +207,12 @@ class Product {
 
   // Get product image path
   static getProductImagePath(productId) {
-    return `images/products/product_${productId}.jpg`;
+    return `uploads/products/product_${productId}.jpg`;
   }
 
   // Get product image path for admin
   static getProductImagePathAdmin(productId) {
-    return `images/products/product_${productId}.jpg`;
+    return `uploads/products/product_${productId}.jpg`;
   }
 }
 
