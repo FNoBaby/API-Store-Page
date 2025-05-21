@@ -18,7 +18,7 @@ class Product {
     try {      let query = `
         SELECT p.productID as id, p.name, p.description, p.price, 
         p.category as category_id, c.name as category_name,
-        p.image, p.active
+        p.imagePath, p.active
         FROM products p
         LEFT JOIN categories c ON p.category = c.categoryID
       `;
@@ -57,7 +57,7 @@ class Product {
     try {      const query = `
         SELECT p.productID as id, p.name, p.description, p.price, 
         p.category as category_id, c.name as category_name,
-        p.image, p.active
+        p.imagePath, p.active
         FROM products p
         LEFT JOIN categories c ON p.category = c.categoryID
         WHERE p.productID = ?
@@ -174,7 +174,7 @@ class Product {
       }        const query = `
         SELECT p.productID as id, p.name, p.description, p.price, 
         p.category as category_id, c.name as category_name,
-        ${hasImageColumn ? 'p.image,' : ''} p.active
+        ${hasImageColumn ? 'p.imagePath,' : ''} p.active
         FROM products p
         LEFT JOIN categories c ON p.category = c.categoryID
         WHERE p.active = 1
