@@ -18,7 +18,7 @@ class Product {
     try {      let query = `
         SELECT p.productID as id, p.name, p.description, p.price, 
         p.category as category_id, c.name as category_name,
-        p.imagePath, p.active
+        p.imagePath, p.active, p.stock
         FROM products p
         LEFT JOIN categories c ON p.category = c.categoryID
       `;
@@ -57,7 +57,7 @@ class Product {
     try {      const query = `
         SELECT p.productID as id, p.name, p.description, p.price, 
         p.category as category_id, c.name as category_name,
-        p.imagePath, p.active
+        p.imagePath, p.active, p.stock
         FROM products p
         LEFT JOIN categories c ON p.category = c.categoryID
         WHERE p.productID = ?
